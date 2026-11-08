@@ -12,11 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
+            $table->id(); // Crea un BIGINT UNSIGNED de forma nativa
+            $table->string('nombre', 50); // En Laravel se usa 'string' para VARCHAR
+            $table->string('apellido', 50);
+            $table->string('dni', 12)->unique(); // Conviene string para DNIs con letras (extranjeros) o pasaportes
             $table->string('email')->unique();
+            $table->string('telefono', 25)->nullable(); // String evita que se rompa con caracteres como "+" o "-"
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('password')->nullable(); // Nullable por si entran directo con Google Login
+            $table->string('google_id')->nullable()->unique(); // Listo para tu Login de Google
+            $table->string('avatar')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

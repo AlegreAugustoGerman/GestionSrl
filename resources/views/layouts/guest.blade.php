@@ -1,30 +1,54 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>El Gurí SRL - Autenticación</title>
+    
+    {{-- <link rel="stylesheet" href="https://jsdelivr.net"/> --}}
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+    </style>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="text-gray-900 antialiased bg-gray-100 min-h-screen w-screen overflow-hidden">
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <!-- 🏗️ Contenedor Pantalla Completa Dividida -->
+    <div class="w-full h-screen flex flex-col md:flex-row">
+        
+        <!-- 🎨 Mitad Izquierda/Diagonal: Tu nueva imagen abstracta corporativa de caminos -->
+        <div class="hidden md:block md:w-1/2 h-full bg-[#2563EB] relative overflow-hidden">
+            <!-- Colocá la imagen generada en tu carpeta public/assets/img/bg-login.jpg -->
+            <img src="{{ asset('assets/img/bg-login.jpg') }}" alt="Caminos El Gurí" class="w-full h-full object-cover">
+            <!-- Capa sutil encima para asegurar el tono corporativo -->
+            <div class="absolute inset-0 bg-blue-900 opacity-10"></div>
+        </div>
 
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100 dark:bg-gray-900">
-            <div>
-                <a href="/">
-                    <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
-                </a>
-            </div>
+        <!-- 📑 Mitad Derecha: Tu formulario limpio de alta legibilidad -->
+        <div class="w-full md:w-1/2 h-full flex items-center justify-center bg-gray-50 px-4 sm:px-8 md:px-16 overflow-y-auto">
+            <div class="w-full sm:max-w-md bg-white border border-gray-200 shadow-2xl rounded-2xl p-8 flex flex-col items-center">
+                
+                <!-- Componente del Logo Adaptado -->
+                <div class="w-44 h-16 mb-4 flex items-center justify-center">
+                    <a href="/" class="w-full h-full block">
+                        <x-application-logo class="w-full h-full" />
+                    </a>
+                </div>
 
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white dark:bg-gray-800 shadow-md overflow-hidden sm:rounded-lg">
-                {{ $slot }}
+                <!-- Formulario Inyectado (Login, Registro, etc.) -->
+                <div class="w-full text-base">
+                    {{ $slot }}
+                </div>
+                
             </div>
         </div>
-    </body>
+
+    </div>
+
+</body>
 </html>

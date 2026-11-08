@@ -1,0 +1,21 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void {
+        Schema::create('provincias', function (Blueprint $table) {
+            $table->id();
+            $table->string('nombre', 60)->unique();
+            $table->string('pais', 60)->default('Argentina');
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void {
+        Schema::dropIfExists('provincias');
+    }
+};
+
