@@ -21,7 +21,7 @@
 
 1. **Clonar el repositorio**
    ```bash
-   git clone https://github.com
+   git clone https://github.com/AlegreAugustoGerman/GestionSrl.git
    ```
 
 2. **Instalar las dependencias**
@@ -36,14 +36,15 @@
 ```bash
 php artisan:key generate
 ```
-
-#DB_CONNECTION=sqlite
-# DB_HOST=127.0.0.1
-# DB_PORT=3306
-# DB_DATABASE=laravel
-# DB_USERNAME=root
-# DB_PASSWORD=
-    
+-configuraciones a reemplazar en el nuevo env
+   ```bash
+   DB_CONNECTION=sqlite
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=laravel
+   DB_USERNAME=root
+   DB_PASSWORD=
+   ```    
 
 1. **levantar db php artisan migrate**
 - correr los seeder  
