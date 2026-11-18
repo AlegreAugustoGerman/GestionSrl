@@ -57,7 +57,7 @@
                                 <span class="material-symbols-outlined text-md">arrow_back</span>
                             </a>
                         @endif
-                        <h1 class="text-2xl font-black text-gray-800 tracking-tight">@yield('title')</h1>
+                        <h1 class="text-2xl font-black text-blue-600 tracking-tight">@yield('title')</h1>
                     </div>
 
                     <!-- Perfil Rápido de Auditoría en Esquina Superior -->
