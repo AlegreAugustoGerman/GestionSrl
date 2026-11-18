@@ -6,7 +6,7 @@ use App\Http\Controllers\ColectivoController;
 use App\Http\Controllers\ChoferController;
 use App\Http\Controllers\RutaController;
 use App\Http\Controllers\ViajeController;
-use App\Http\Controllers\BoleteriaController;
+use App\Http\Controllers\BoletoController;
 
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
@@ -119,17 +119,12 @@ Route::middleware('auth')->group(function () {
     // 🎫 MODULO: BOLETERÍA (VENTAS Y EMISIÓN)
     // =========================================================================
     Route::prefix('boleteria/')->group(function () {
-        Route::controller(BoleteriaController::class)->group(function () {
-            // Panel de control de la boletería (Buscar viajes disponibles)
-            Route::get('',              'index')->name('boleteria.index');
-            // Pantalla para elegir asientos libres de un viaje
-            Route::get('viaje/{viaje}', 'create')->name('boleteria.create');
-            // Procesar y registrar la Venta + Boleto (Transaccional)
-            Route::post('vender',       'store')->name('boleteria.store');
-            // Ver comprobante / Boleto emitido
-            Route::get('boleto/{boleto}', 'show')->name('boleteria.show');
-            // Anular una operación de venta
-            Route::delete('anular/{id}', 'destroy')->name('boleteria.destroy');
+        Route::controller(BoletoController::class)->group(function () {
+            Route::get('',                'index')->name('boleteria.index')->middleware('permission:venta.index');
+            Route::get('viaje/{viaje}',   'create')->name('boleteria.create')->middleware('permission:venta.store');
+            Route::post('vender',         'store')->name('boleteria.store')->middleware('permission:venta.store');
+            Route::get('boleto/{boleto}', 'show')->name('boleteria.show')->middleware('permission:venta.index');
+            Route::delete('anular/{id}',  'destroy')->name('boleteria.destroy')->middleware('permission:venta.destroy');
         });
     });
 });
