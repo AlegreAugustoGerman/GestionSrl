@@ -4,62 +4,43 @@ namespace App\Http\Controllers;
 
 use App\Models\Pasajero;
 use Illuminate\Http\Request;
+use App\Models\Boleto;
+use Illuminate\Support\Facades\Auth;
 
 class PasajeroController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+  public function index()
     {
-        //
+        $misBoletos = Boleto::with(['viaje.ruta.origen', 'viaje.ruta.destino', 'viaje.colectivo', 'asiento', 'venta'])
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->get();
+
+        return view('pasajero.boletos.index', compact('misBoletos'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function reportarAusencia(Boleto $boleto)
     {
-        //
+        // Verificamos que el boleto pertenezca al usuario logueado
+        abort_if($boleto->user_id !== Auth::id(), 403);
+
+        $boleto->update(['embarque' => 'ausente']);
+
+        return redirect()->back()->with('success', 'Se registró tu aviso de cancelación para el control del chofer.');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+    public function show(Boleto $boleto)
+{
+    $user = Auth::user();
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Pasajero $pasajero)
-    {
-        //
-    }
+    // Solo puede ver el ticket si es quien viaja o quien pagó esa venta
+    $esDueno = ($boleto->user_id === $user->id) || ($boleto->venta->cliente_id === $user->id);
+    abort_unless($esDueno, 403, 'No tenés permiso para ver este boleto.');
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Pasajero $pasajero)
-    {
-        //
-    }
+    $boleto->load(['venta.vendedor', 'pasajero', 'viaje.ruta.origen', 'viaje.ruta.destino', 'viaje.colectivo', 'asiento']);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Pasajero $pasajero)
-    {
-        //
-    }
+    // Reutilizamos la misma vista limpia del ticket que ya armamos
+    return view('boleteria.show', compact('boleto'));
+}
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Pasajero $pasajero)
-    {
-        //
-    }
 }

@@ -33,4 +33,9 @@ class Colectivo extends Model {
     public function asientos(): HasMany {
         return $this->hasMany(Asiento::class);
     }
+
+        public function viajes(): HasMany
+    {
+        return $this->hasMany(Viaje::class);
+    }
 }

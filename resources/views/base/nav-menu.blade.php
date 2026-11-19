@@ -29,6 +29,21 @@
                 </li>
                 @endcan
 
+                <li class="w-12 h-12 rounded-2xl flex overflow-hidden transition-all {{ Route::is('pasajero.*') ? 'bg-blue-600' : 'bg-gray-800 hover:bg-yellow-500' }}">
+                    <a href="{{ route('pasajero.boletos.index') }}" class="flex justify-center items-center w-full h-full text-white hover:text-white" title="Mis Pasajes">
+                        <span class="material-symbols-outlined text-xl">local_activity</span>
+                    </a>
+                </li>
+
+                <!-- Panel de Embarque (Visible solo si el usuario tiene perfil de Chofer) -->
+                @if(Auth::user()->chofer)
+                <li class="w-12 h-12 rounded-2xl flex overflow-hidden transition-all {{ Route::is('chofer.*') ? 'bg-blue-600' : 'bg-gray-800 hover:bg-yellow-500' }}">
+                    <a href="{{ route('chofer.viajes') }}" class="flex justify-center items-center w-full h-full text-white hover:text-white" title="Control de Embarque">
+                        <span class="material-symbols-outlined text-xl">fact_check</span>
+                    </a>
+                </li>
+                @endif
+
                 <!-- Gestión de Personal (Choferes) -->
                 @can('chofer.index')
                 <li class="w-12 h-12 rounded-2xl flex overflow-hidden transition-all {{ Route::is('choferes.*') ? 'bg-blue-600' : 'bg-gray-800 hover:bg-yellow-500' }}">

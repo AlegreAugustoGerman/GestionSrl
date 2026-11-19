@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Boleto extends Model {
-    protected $fillable = ['venta_id', 'user_id', 'viaje_id', 'asiento_id', 'precio', 'estado'];
+    protected $fillable = ['venta_id', 'user_id', 'viaje_id', 'asiento_id', 'precio', 'estado','embarque'];
 
     public function venta(): BelongsTo {
         return $this->belongsTo(Venta::class);

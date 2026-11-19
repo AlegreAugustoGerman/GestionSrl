@@ -77,4 +77,21 @@ class ChoferController extends Controller
                 ->with('error', 'No se puede dar de baja al chofer porque tiene viajes asignados en el cronograma.');
         }
     }
+
+
+        public function marcarEmbarque(Boleto $boleto, string $estado)
+    {
+        abort_unless(in_array($estado, ['embarcado', 'ausente']), 400);
+
+        $chofer = Auth::user()->chofer;
+        abort_if(!$chofer, 403);
+
+        // Verificamos que el viaje de este boleto esté realmente asignado a este chofer
+        $esSuViaje = $chofer->viajes()->where('viajes.id', $boleto->viaje_id)->exists();
+        abort_unless($esSuViaje, 403, 'Este boleto no pertenece a uno de tus viajes asignados.');
+
+        $boleto->update(['embarque' => $estado]);
+
+        return redirect()->back()->with('success', 'Estado de embarque actualizado.');
+    }
 }

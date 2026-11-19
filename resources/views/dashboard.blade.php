@@ -119,7 +119,7 @@
                 <h3 class="font-bold text-lg text-gray-800">Reportes de Recaudación</h3>
                 <p class="text-gray-500 text-xs">Consultas consolidadas de ingresos por viaje, períodos fiscales e historial de operaciones.</p>
             </div>
-            <a href="#" class="text-sm font-bold text-red-600 hover:text-red-800 flex items-center gap-1 pt-2">
+            <a href="{{ route('gerencia.reportes.index') }}" class="text-sm font-bold text-red-600 hover:text-red-800 flex items-center gap-1 pt-2">
                 Ver auditorías <span class="material-symbols-outlined text-sm translate-y-0.5">arrow_forward</span>
             </a>
         </div>
@@ -136,7 +136,7 @@
                 <h3 class="font-bold text-lg text-gray-800">Historial de Pasajes</h3>
                 <p class="text-gray-500 text-xs">Consultá tus boletos adquiridos para las líneas de El Gurí SRL, horarios de embarque y números de butacas asignadas.</p>
             </div>
-            <a href="#" class="text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 pt-2">
+            <a href="{{ route('pasajero.boletos.index') }}" class="text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 pt-2">
                 Ver mis boletos <span class="material-symbols-outlined text-sm translate-y-0.5">arrow_forward</span>
             </a>
         </div>

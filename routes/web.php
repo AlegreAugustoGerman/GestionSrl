@@ -7,6 +7,10 @@ use App\Http\Controllers\ChoferController;
 use App\Http\Controllers\RutaController;
 use App\Http\Controllers\ViajeController;
 use App\Http\Controllers\BoletoController;
+use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\PasajeroController;
+use App\Http\Controllers\HistorialController;
+ 
 
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
@@ -54,22 +58,21 @@ Route::middleware('auth')->group(function () {
     // =========================================================================
     Route::prefix('admin/choferes/')->group(function () {
         Route::controller(ChoferController::class)->group(function () {
-            // Listado
             Route::get('',              'index')->name('choferes.index');
-            // Crear / Promover usuario
             Route::get('create',        'create')->name('choferes.create');
-            // Guardar perfil de chofer
             Route::post('',             'store')->name('choferes.store');
-            // Mostrar legajo e historial
             Route::get('{chofer}',      'show')->name('choferes.show');
-            // Editar carnet / estado
             Route::get('{chofer}/edit', 'edit')->name('choferes.edit');
-            // Actualizar
             Route::put('{chofer}',      'update')->name('choferes.update');
-            // Eliminar
             Route::delete('{chofer}',   'destroy')->name('choferes.destroy');
         });
     });
+
+    // 🚌 PANEL OPERATIVO DEL CONDUCTOR (Embarque en ruta)
+    Route::get('/chofer/mis-viajes', [ChoferController::class, 'Embarquechofer'])
+        ->name('chofer.viajes');
+    Route::patch('/chofer/boleto/{boleto}/{estado}', [ChoferController::class, 'marcarEmbarque'])
+        ->name('chofer.embarque');
 
     // =========================================================================
     // 🗺️ MODULO: RUTAS COMERCIALES
@@ -120,13 +123,26 @@ Route::middleware('auth')->group(function () {
     // =========================================================================
     Route::prefix('boleteria/')->group(function () {
         Route::controller(BoletoController::class)->group(function () {
-            Route::get('',                'index')->name('boleteria.index')->middleware('permission:venta.index');
+            Route::get('',                'index')->name('boleteria.index')->middleware('permission:venta.index','permission:venta.store');
+            Route::get('buscar-dni/{dni}', 'buscarPorDni')->name('boleteria.buscarDni');
             Route::get('viaje/{viaje}',   'create')->name('boleteria.create')->middleware('permission:venta.store');
             Route::post('vender',         'store')->name('boleteria.store')->middleware('permission:venta.store');
-            Route::get('boleto/{boleto}', 'show')->name('boleteria.show')->middleware('permission:venta.index');
+            Route::get('boleto/{boleto}', 'show')->name('boleteria.show')->middleware('permission:venta.show');
             Route::delete('anular/{id}',  'destroy')->name('boleteria.destroy')->middleware('permission:venta.destroy');
         });
     });
+
+           // 📊 MODULO: REPORTES GERENCIALES
+        Route::get('/gerencia/reportes', [ReporteController::class, 'index'])
+            ->name('gerencia.reportes.index')
+            ->middleware('permission:reporte.recaudacion');
+
+// 🎟️ MODULO: HISTORIAL DEL PASAJERO
+Route::get('/mis-boletos', [PasajeroController::class, 'index'])->name('pasajero.boletos.index');
+Route::get('/mis-boletos/{boleto}', [PasajeroController::class, 'show'])->name('pasajero.boletos.show');
+Route::patch('/mis-boletos/{boleto}/ausencia', [PasajeroController::class, 'reportarAusencia'])->name('mis-boletos.ausencia'); 
+
+
 });
 
 require __DIR__.'/auth.php';

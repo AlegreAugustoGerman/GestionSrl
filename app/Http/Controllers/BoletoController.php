@@ -38,6 +38,12 @@ class BoletoController extends Controller
         return view('boleteria.index', compact('viajes', 'ultimasVentas'));
     }
 
+    public function buscarPorDni($dni)
+{
+    $usuario = User::where('dni', $dni)->first(['nombre', 'apellido', 'telefono']);
+    return response()->json($usuario);
+} 
+
     /**
      * Muestra el mapa visual de asientos del colectivo para un viaje concreto.
      */
@@ -57,91 +63,109 @@ class BoletoController extends Controller
     /**
      * ALGORITMO TRANSACCIONAL: Registra la Venta, el Pasajero (si es nuevo) y el Boleto.
      */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'viaje_id'    => 'required|exists:viajes,id',
-            'asiento_id'  => 'required|exists:asientos,id',
-            'dni'         => 'required|numeric|digits_between:7,10',
-            'nombre'      => 'required|string|max:50',
-            'apellido'    => 'required|string|max:50',
-            'telefono'    => 'nullable|numeric|digits_between:8,15',
-            'metodo_pago' => 'required|string|in:efectivo,tarjeta,transferencia',
-        ], [
-            'asiento_id.required' => 'Debe seleccionar una butaca disponible en el mapa.',
-            'dni.numeric'         => 'El DNI debe contener únicamente números sin puntos.',
-        ]);
+  public function store(Request $request)
+{
+    $request->validate([
+        'viaje_id'               => 'required|exists:viajes,id',
+        'metodo_pago'            => 'required|string|in:efectivo,tarjeta,transferencia',
+        'comprador_dni'          => 'required|numeric|digits_between:7,10',
+        'comprador_nombre'       => 'required|string|max:50',
+        'comprador_apellido'     => 'required|string|max:50',
+        'pasajeros'              => 'required|array|min:1',
+        'pasajeros.*.asiento_id' => 'required|exists:asientos,id',
+        'pasajeros.*.dni'        => 'required|numeric|digits_between:7,10|distinct',
+        'pasajeros.*.nombre'     => 'required|string|max:50',
+        'pasajeros.*.apellido'   => 'required|string|max:50',
+    ], [
+        'pasajeros.*.dni.distinct' => 'No se puede asignar el mismo DNI a dos asientos en el mismo viaje.',
+    ]);
 
-        $viaje = Viaje::findOrFail($request->viaje_id);
+    $viaje = Viaje::findOrFail($request->viaje_id);
 
-        // Verificamos previamente que el asiento pertenezca realmente al colectivo de este viaje
-        $asientoValido = $viaje->colectivo->asientos()
-            ->where('id', $request->asiento_id)
-            ->where('estado', 'habilitado')
-            ->exists();
+    try {
+        $primerBoleto = DB::transaction(function () use ($request, $viaje) {
+            
+            // 1. Registrar o recuperar al Comprador
+            $comprador = User::firstOrCreate(
+                ['dni' => $request->comprador_dni],
+                [
+                    'nombre'   => ucwords(strtolower($request->comprador_nombre)),
+                    'apellido' => ucwords(strtolower($request->comprador_apellido)),
+                    'email'    => $request->comprador_dni . '@guri.com',
+                    'telefono' => $request->comprador_telefono,
+                    'password' => Hash::make($request->comprador_dni),
+                ]
+            );
+            if ($comprador->wasRecentlyCreated) $comprador->assignRole('pasajero');
 
-        if (!$asientoValido) {
-            return redirect()->back()->with('error', 'La butaca seleccionada no pertenece a esta unidad o está inhabilitada.');
-        }
+            // 2. Crear la Venta (el total se actualizará al sumar cada asiento real)
+            $venta = Venta::create([
+                'cliente_id'  => $comprador->id,
+                'vendedor_id' => Auth::id(),
+                'fecha_venta' => now(),
+                'total'       => 0,
+                'metodo_pago' => $request->metodo_pago,
+                'estado'      => 'completada',
+            ]);
 
-        try {
-            // 🔒 INICIO DE TRANSACCIÓN ATÓMICA
-            $boleto = DB::transaction(function () use ($request, $viaje) {
-                
-                // 1. Buscar al pasajero por DNI; si no existe en el sistema, lo registramos al vuelo
+            $totalVenta = 0;
+            $primerBoletoCreado = null;
+
+            // 3. Emitir cada Boleto con el precio exacto según el tipo de asiento en DB
+            foreach ($request->pasajeros as $item) {
+                $asientoFisico = $viaje->colectivo->asientos()
+                    ->where('id', $item['asiento_id'])
+                    ->where('estado', 'habilitado')
+                    ->firstOrFail();
+
+                // Cálculo real según categoría del asiento en base de datos
+                $precioAsiento = match ($asientoFisico->tipo) {
+                    'cama'  => round($viaje->precio * 1.25, 2), // +25% ejecutivo
+                    'comun' => round($viaje->precio * 0.90, 2), // -10% común
+                    default => $viaje->precio,                  // semicama base
+                };
+
                 $pasajero = User::firstOrCreate(
-                    ['dni' => $request->dni],
+                    ['dni' => $item['dni']],
                     [
-                        'nombre'   => ucwords(strtolower($request->nombre)),
-                        'apellido' => ucwords(strtolower($request->apellido)),
-                        'email'    => $request->dni . '@://guri.com', // Email temporal único si compra en ventanilla
-                        'telefono' => $request->telefono,
-                        'password' => Hash::make($request->dni),
+                        'nombre'   => ucwords(strtolower($item['nombre'])),
+                        'apellido' => ucwords(strtolower($item['apellido'])),
+                        'email'    => $item['dni'] . '@guri.com',
+                        'password' => Hash::make($item['dni']),
                     ]
                 );
+                if ($pasajero->wasRecentlyCreated) $pasajero->assignRole('pasajero');
 
-                // Aseguramos que tenga el rol básico si fue recién creado
-                if ($pasajero->wasRecentlyCreated) {
-                    $pasajero->assignRole('pasajero');
-                }
-
-                // 2. Creamos la cabecera de la Venta (Auditoría comercial)
-                $venta = Venta::create([
-                    'cliente_id'  => $pasajero->id,
-                    'vendedor_id' => Auth::id(), // El boletero logueado actualmente
-                    'fecha_venta' => now(),
-                    'total'       => $viaje->precio,
-                    'metodo_pago' => $request->metodo_pago,
-                    'estado'      => 'completada',
-                ]);
-
-                // 3. Emitimos el Boleto. Si otro operador lo vendió 1ms antes, MySQL lanzará error 1062 acá
-                return $venta->boletos()->create([
+                $boleto = $venta->boletos()->create([
                     'user_id'    => $pasajero->id,
                     'viaje_id'   => $viaje->id,
-                    'asiento_id' => $request->asiento_id,
-                    'precio'     => $viaje->precio,
+                    'asiento_id' => $asientoFisico->id,
+                    'precio'     => $precioAsiento,
                     'estado'     => 'vendido',
                 ]);
-            });
 
-            // Redirigimos directo al comprobante listo para imprimir
-            return redirect()->route('boleteria.show', $boleto->id)
-                ->with('success', '¡Pasaje emitido con éxito! Butaca bloqueada y confirmada.');
-
-        } catch (QueryException $e) {
-            // Código 23000 / 1062 = Violación de restricción UNIQUE (viaje_id, asiento_id)
-            if ($e->errorInfo[1] == 1062) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', '⚠️ ¡Asiento ocupado! Otro operador acaba de vender esta butaca hace un instante. Por favor elegí otra.');
+                $totalVenta += $precioAsiento;
+                if (!$primerBoletoCreado) $primerBoletoCreado = $boleto;
             }
 
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Ocurrió un error inesperado al procesar la transacción.');
+            // Guardamos el total real sumado en la cabecera de Venta
+            $venta->update(['total' => $totalVenta]);
+
+            return $primerBoletoCreado;
+        });
+
+        return redirect()->route('boleteria.show', $primerBoleto->id)
+            ->with('success', '¡Venta procesada! Boletos emitidos según categoría de butaca.');
+
+    } catch (QueryException $e) {
+        if (isset($e->errorInfo[1]) && $e->errorInfo[1] == 1062) {
+            return redirect()->back()->withInput()
+                ->with('error', '⚠️ Una de las butacas seleccionadas ya fue vendida hace un instante.');
         }
+        return redirect()->back()->withInput()->with('error', 'Error al procesar la operación.');
     }
+}
+
 
     /**
      * Comprobante / Ticket del Boleto emitido.

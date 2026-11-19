@@ -26,5 +26,10 @@ class Viaje extends Model {
     public function boletos(): HasMany {
         return $this->hasMany(Boleto::class);
     }
+
+    public function viajes(): HasMany
+    {
+    return $this->hasMany(Viaje::class);
+    }
 }
 

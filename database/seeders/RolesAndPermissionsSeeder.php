@@ -69,7 +69,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // 🎫 Módulo: Operaciones Comerciales (Ventas y Boletos)
         Permission::create(['name' => 'venta.index'])->assignRole($roleAdmin, $roleBoletero, $roleGerente);
-        Permission::create(['name' => 'venta.show'])->assignRole($roleAdmin, $roleBoletero, $roleGerente);
+        Permission::create(['name' => 'venta.show'])->assignRole($roleAdmin, $roleBoletero, $roleGerente,$rolePasajero);
         Permission::create(['name' => 'venta.store'])->assignRole($roleBoletero); // Emitir pasaje/venta
         Permission::create(['name' => 'venta.destroy'])->assignRole($roleBoletero); // Anular pasaje/venta
 
