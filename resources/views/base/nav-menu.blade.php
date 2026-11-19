@@ -44,6 +44,8 @@
                 </li>
                 @endif
 
+                
+
                 <!-- Gestión de Personal (Choferes) -->
                 @can('chofer.index')
                 <li class="w-12 h-12 rounded-2xl flex overflow-hidden transition-all {{ Route::is('choferes.*') ? 'bg-blue-600' : 'bg-gray-800 hover:bg-yellow-500' }}">
@@ -70,6 +72,13 @@
                     </a>
                 </li>
                 @endcan
+                @if(Auth::user()->gerente)
+                <li class="w-12 h-12 rounded-2xl flex overflow-hidden transition-all {{ Route::is('gerencia.*') ? 'bg-blue-600' : 'bg-gray-800 hover:bg-yellow-500' }}">
+                    <a href="{{ route('gerencia.reportes.index') }}" class="flex justify-center items-center w-full h-full text-white hover:text-white" title="Reportes de Recaudación">
+                        <span class="material-symbols-outlined text-xl">fact_check</span>
+                    </a>
+                </li>
+                @endif
 
                 <!-- Terminal de Boletería -->
                 @can('venta.store')

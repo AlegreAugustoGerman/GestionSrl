@@ -79,20 +79,13 @@ Route::middleware('auth')->group(function () {
     // =========================================================================
     Route::prefix('admin/rutas/')->group(function () {
         Route::controller(RutaController::class)->group(function () {
-            // Listado
-            Route::get('',              'index')->name('rutas.index');
-            // Crear
-            Route::get('create',        'create')->name('rutas.create');
-            // Guardar
-            Route::post('',             'store')->name('rutas.store');
-            // Mostrar
-            Route::get('{ruta}',        'show')->name('rutas.show');
-            // Editar
-            Route::get('{ruta}/edit',   'edit')->name('rutas.edit');
-            // Actualizar
-            Route::put('{ruta}',        'update')->name('rutas.update');
-            // Eliminar
-            Route::delete('{ruta}',     'destroy')->name('rutas.destroy');
+            Route::get('',              'index')->name('rutas.index')->middleware('permission:ruta.index');
+            Route::get('create',        'create')->name('rutas.create')->middleware('permission:ruta.create');
+            Route::post('',             'store')->name('rutas.store')->middleware('permission:ruta.store');
+            Route::get('{ruta}',        'show')->name('rutas.show')->middleware('permission:ruta.show');
+            Route::get('{ruta}/edit',   'edit')->name('rutas.edit')->middleware('permission:ruta.edit');
+            Route::put('{ruta}',        'update')->name('rutas.update')->middleware('permission:ruta.update');
+            Route::delete('{ruta}',     'destroy')->name('rutas.destroy')->middleware('permission:ruta.destroy');
         });
     });
 
