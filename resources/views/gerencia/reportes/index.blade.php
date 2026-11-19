@@ -128,50 +128,52 @@
 
 </div>
 
-<script src="https://jsdelivr.net"></script>
- 
 <script>
-    // 1. Gráfico de Barras: Recaudación por Viaje
-    const ctxRec = document.getElementById('chartRecaudacion').getContext('2d');
-    new Chart(ctxRec, {
-        type: 'bar',
-        data: {
-            labels: {!! json_encode($recaudacionPorViaje->map(fn($v) => $v->ruta->origen->nombre . ' - ' . $v->ruta->destino->nombre . ' (' . date('d/m', strtotime($v->fecha)) . ')')) !!},
-            datasets: [{
-                label: 'Recaudación ($)',
-                data: {!! json_encode($recaudacionPorViaje->map(fn($v) => $v->total_recaudado ?? 0)) !!},
-                backgroundColor: '#2563EB',
-                borderRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } }
-        }
-    });
+ 
+    document.addEventListener('DOMContentLoaded', function () {
+        // 1. Gráfico de Barras: Recaudación por Viaje
+        const ctxRec = document.getElementById('chartRecaudacion').getContext('2d');
+        new Chart(ctxRec, {
+            type: 'bar',
+            data: {
+                labels: {!! json_encode($recaudacionPorViaje->map(fn($v) => $v->ruta->origen->nombre . ' - ' . $v->ruta->destino->nombre . ' (' . date('d/m', strtotime($v->fecha)) . ')')) !!},
+                datasets: [{
+                    label: 'Recaudación ($)',
+                    data: {!! json_encode($recaudacionPorViaje->map(fn($v) => $v->total_recaudado ?? 0)) !!},
+                    backgroundColor: '#2563EB',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
 
-    // 2. Gráfico de Dona: Control de Embarque Global
-    const ctxEmb = document.getElementById('chartEmbarque').getContext('2d');
-    new Chart(ctxEmb, {
-        type: 'doughnut',
-        data: {
-            labels: ['Embarcados', 'Pendientes', 'Ausentes'],
-            datasets: [{
-                data: [
-                    {{ \App\Models\Boleto::where('embarque', 'embarcado')->count() }},
-                    {{ \App\Models\Boleto::where('embarque', 'pendiente')->count() }},
-                    {{ \App\Models\Boleto::where('embarque', 'ausente')->count() }}
-                ],
-                backgroundColor: ['#16A34A', '#FBBF24', '#EF4444'],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
-        }
+        // 2. Gráfico de Dona: Control de Embarque Global
+        const ctxEmb = document.getElementById('chartEmbarque').getContext('2d');
+        new Chart(ctxEmb, {
+            type: 'doughnut',
+            data: {
+                labels: ['Embarcados', 'Pendientes', 'Ausentes'],
+                datasets: [{
+                    data: [
+                        {{ \App\Models\Boleto::where('embarque', 'embarcado')->count() }},
+                        {{ \App\Models\Boleto::where('embarque', 'pendiente')->count() }},
+                        {{ \App\Models\Boleto::where('embarque', 'ausente')->count() }}
+                    ],
+                    backgroundColor: ['#16A34A', '#FBBF24', '#EF4444'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
     });
+ 
 </script>
 
 @endsection
